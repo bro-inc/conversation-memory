@@ -93,6 +93,7 @@
 const hoursEl = document.getElementById("hours");
 const statusEl = document.getElementById("status");
 const state = {}; // hour_key -> { open, segmentsLoaded, summary }
+let lastBucketsKey = null; // skip re-render when nothing actually changed
 
 function fmtHour(hourKey) {
   const [date, hour] = hourKey.split("T");
@@ -120,6 +121,11 @@ async function refreshHours() {
     for (const b of buckets) {
       if (!state[b.hour_key]) state[b.hour_key] = { open: false, segmentsLoaded: false, summary: null };
     }
+    // Skip the rebuild entirely when nothing actually changed -- otherwise every 4s poll
+    // wipes and rebuilds the whole list, which resets scroll to the top mid-read.
+    const bucketsKey = JSON.stringify(buckets);
+    if (bucketsKey === lastBucketsKey) return;
+    lastBucketsKey = bucketsKey;
     render(buckets);
   } catch (e) {
     statusEl.textContent = "disconnected — is web_ui.py running?";
@@ -127,6 +133,7 @@ async function refreshHours() {
 }
 
 function render(buckets) {
+  const scrollY = window.scrollY;
   hoursEl.innerHTML = "";
   for (const b of buckets) {
     const s = state[b.hour_key];
@@ -165,6 +172,7 @@ function render(buckets) {
 
     if (s.open) loadBody(b.hour_key);
   }
+  window.scrollTo(0, scrollY);
 }
 
 function toggle(hourKey) {
