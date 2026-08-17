@@ -72,6 +72,8 @@ extraction — that's `screen-memory`'s job, not this project's.
 - `desktop_app.py` — runs `web_ui.py`'s server in a background thread and opens it in a
   native `pywebview` window instead of a browser tab
 - `summarizer.py` — DeepSeek (OpenAI-compatible) client for per-hour summaries
+- `scripts/install_launchagent.sh` / `uninstall_launchagent.sh` — macOS LaunchAgent so
+  `daemon.py` (and optionally `desktop_app.py`) starts at login and auto-restarts on crash
 
 ## Known v1 limitations
 - Single mic channel: interleaved speakers' audio spans are extracted separately using
@@ -81,6 +83,10 @@ extraction — that's `screen-memory`'s job, not this project's.
   not validated against SpeechBrain ECAPA-TDNN — needs real tuning.
 - No cleanup/merge path yet for a voiceprint that got split into two (e.g. enrolled once from a
   noisy clip, again later cleanly) — voiceprints only ever get created, never merged.
+- The LaunchAgent (`scripts/install_launchagent.sh`) keeps `daemon.py` running across logins
+  and crashes, but doesn't handle the mic stream / Deepgram socket going stale across a
+  sleep/wake cycle — no wake-detection/reconnect logic yet, verified live: `launchctl
+  kickstart -k` is the manual recovery for now.
 
 ## How to Run
 ```bash

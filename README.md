@@ -22,6 +22,29 @@ First run downloads the SpeechBrain ECAPA-TDNN model (~80MB) to `models/`.
 python query.py [n]   # last n transcript segments (default 50), tagged with voiceprint ids
 ```
 
+## Run automatically at login (survives closing the laptop / logging back in)
+
+```bash
+./scripts/install_launchagent.sh            # daemon only
+./scripts/install_launchagent.sh --with-ui  # daemon + desktop window, both at login
+```
+
+Installs a macOS LaunchAgent: `daemon.py` starts at login and auto-restarts if it ever
+crashes (`launchctl kickstart -k gui/$(id -u)/com.broinc.conversation-memory.daemon` to force
+a restart). Logs go to `~/Library/Logs/conversation-memory/`. Undo with
+`./scripts/uninstall_launchagent.sh`.
+
+Two things this does **not** cover, worth knowing:
+- **Mic permission for a headless launch**: the first time launchd (not you, from a Terminal)
+  opens the mic, macOS may silently deny it instead of prompting. If the log shows no
+  transcript activity, grant Microphone access to `.venv/bin/python3` in System Settings →
+  Privacy & Security → Microphone, then kickstart it.
+- **Sleep/wake**: the process itself survives the lid closing (it's just paused, not killed),
+  but the CoreAudio input stream and the Deepgram websocket can go stale across a sleep/wake
+  cycle without daemon.py noticing and reconnecting — there's no wake-detection/reconnect
+  logic yet. If transcripts stop after a sleep cycle, `launchctl kickstart -k ...` is the
+  manual fix for now.
+
 ## Desktop UI
 
 ```bash
