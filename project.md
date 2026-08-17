@@ -67,6 +67,9 @@ extraction — that's `screen-memory`'s job, not this project's.
 - `speaker_matcher.py` — cosine-distance match against stored voiceprints, or enroll new
 - `db.py` — SQLite: `voiceprints` (persistent, anonymous) + `segments` (transcript log)
 - `query.py` — CLI to read back the transcript log
+- `web_ui.py` + `static/index.html` — local FastAPI test UI: transcripts grouped by hour,
+  live-refreshing, with an on-demand DeepSeek summary per hour (cached in `summaries` table)
+- `summarizer.py` — DeepSeek (OpenAI-compatible) client for per-hour summaries
 
 ## Known v1 limitations
 - Single mic channel: interleaved speakers' audio spans are extracted separately using

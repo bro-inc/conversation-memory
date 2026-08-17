@@ -43,7 +43,61 @@ def init_db() -> None:
             FOREIGN KEY (voiceprint_id) REFERENCES voiceprints (id)
         );
         CREATE INDEX IF NOT EXISTS idx_segments_session ON segments (session_id, session_speaker_id);
+        CREATE TABLE IF NOT EXISTS summaries (
+            hour_key TEXT PRIMARY KEY,
+            summary TEXT NOT NULL,
+            generated_at REAL NOT NULL
+        );
         """
+    )
+    conn.commit()
+    conn.close()
+
+
+def _hour_key_expr() -> str:
+    """SQL expression bucketing a unix-epoch `created_at` column into a local-time hour key."""
+    return "strftime('%Y-%m-%dT%H', created_at, 'unixepoch', 'localtime')"
+
+
+def get_hour_buckets() -> List[dict]:
+    """Every hour that has at least one segment, most recent first."""
+    conn = _connect()
+    rows = conn.execute(
+        f"""SELECT {_hour_key_expr()} AS hour_key, COUNT(*) AS segment_count, MIN(created_at), MAX(created_at)
+            FROM segments GROUP BY hour_key ORDER BY hour_key DESC"""
+    ).fetchall()
+    conn.close()
+    return [
+        {"hour_key": r[0], "segment_count": r[1], "first_ts": r[2], "last_ts": r[3]} for r in rows
+    ]
+
+
+def get_segments_for_hour(hour_key: str) -> List[dict]:
+    conn = _connect()
+    rows = conn.execute(
+        f"""SELECT voiceprint_id, session_speaker_id, text, created_at FROM segments
+            WHERE {_hour_key_expr()} = ? ORDER BY id ASC""",
+        (hour_key,),
+    ).fetchall()
+    conn.close()
+    return [
+        {"voiceprint_id": r[0], "session_speaker_id": r[1], "text": r[2], "created_at": r[3]} for r in rows
+    ]
+
+
+def get_summary(hour_key: str) -> Optional[str]:
+    conn = _connect()
+    row = conn.execute("SELECT summary FROM summaries WHERE hour_key = ?", (hour_key,)).fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def save_summary(hour_key: str, summary: str) -> None:
+    conn = _connect()
+    conn.execute(
+        """INSERT INTO summaries (hour_key, summary, generated_at) VALUES (?, ?, ?)
+           ON CONFLICT(hour_key) DO UPDATE SET summary = excluded.summary, generated_at = excluded.generated_at""",
+        (hour_key, summary, time.time()),
     )
     conn.commit()
     conn.close()

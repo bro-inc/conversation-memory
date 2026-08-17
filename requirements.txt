@@ -6,3 +6,6 @@ speechbrain
 torch
 torchaudio
 python-dotenv
+fastapi
+uvicorn
+openai

@@ -22,4 +22,15 @@ First run downloads the SpeechBrain ECAPA-TDNN model (~80MB) to `models/`.
 python query.py [n]   # last n transcript segments (default 50), tagged with voiceprint ids
 ```
 
+## Web UI
+
+```bash
+python web_ui.py   # http://localhost:8765
+```
+
+Run alongside `daemon.py` (reads the same SQLite file, refreshes every 4s). Shows transcript
+segments grouped by hour; click an hour to expand it, click "summarize" to generate a fast
+DeepSeek summary for that hour (cached — re-summarize to regenerate). Needs `DEEPSEEK_API_KEY`
+in `.env` for the summarize button; browsing transcripts works without it.
+
 See `project.md` for design notes and known v1 limitations.
