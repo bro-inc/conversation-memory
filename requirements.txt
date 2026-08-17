@@ -1,0 +1,8 @@
+deepgram-sdk>=3.0,<4.0
+sounddevice
+numpy
+scipy
+speechbrain
+torch
+torchaudio
+python-dotenv

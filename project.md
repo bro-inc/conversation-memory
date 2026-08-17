@@ -59,7 +59,29 @@ Scope boundary: mic audio only (no system audio capture), no LLM summarization/a
 extraction — that's `screen-memory`'s job, not this project's.
 
 ## Key Files
-_To be filled in as we build._
+- `daemon.py` — main loop: mic capture → Deepgram → per-speaker accumulation → resolution → log
+- `deepgram_stream.py` — Nova-3 live connection, groups diarized words into utterance segments
+- `audio_ring_buffer.py` — rolling wall-clock-indexed PCM buffer (30s), lets us recover a given
+  speaker's actual audio after the fact for embedding
+- `embedding.py` — local SpeechBrain ECAPA-TDNN speaker embedding extraction
+- `speaker_matcher.py` — cosine-distance match against stored voiceprints, or enroll new
+- `db.py` — SQLite: `voiceprints` (persistent, anonymous) + `segments` (transcript log)
+- `query.py` — CLI to read back the transcript log
+
+## Known v1 limitations
+- Single mic channel: interleaved speakers' audio spans are extracted separately using
+  Deepgram's per-word time ranges, but ring-buffer wall-clock alignment is an approximation
+  (assumes near-real-time processing lag) — worth revisiting if resolution accuracy suffers.
+- `MATCH_THRESHOLD = 0.45` is copied from Omi's pyannote-calibrated value as a starting point,
+  not validated against SpeechBrain ECAPA-TDNN — needs real tuning.
+- No cleanup/merge path yet for a voiceprint that got split into two (e.g. enrolled once from a
+  noisy clip, again later cleanly) — voiceprints only ever get created, never merged.
 
 ## How to Run
-_To be filled in as we build._
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.template .env   # add DEEPGRAM_API_KEY
+python daemon.py
+python query.py         # inspect the transcript log
+```
