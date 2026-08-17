@@ -29,7 +29,7 @@ async def connect(on_segments: SegmentCallback):
     """
     api_key = os.environ["DEEPGRAM_API_KEY"]
     client = DeepgramClient(api_key, DeepgramClientOptions(options={"keepalive": "true"}))
-    connection = client.listen.asynclive.v("1")
+    connection = client.listen.asyncwebsocket.v("1")
 
     async def on_transcript(self, result, **kwargs):
         if not result.is_final:
