@@ -22,7 +22,16 @@ First run downloads the SpeechBrain ECAPA-TDNN model (~80MB) to `models/`.
 python query.py [n]   # last n transcript segments (default 50), tagged with voiceprint ids
 ```
 
-## Web UI
+## Desktop UI
+
+```bash
+python desktop_app.py
+```
+
+Opens a native window (via `pywebview`) — no browser tab, just an app window you can leave up.
+Same UI as below, just not stuck inside Chrome. Run alongside `daemon.py`.
+
+## Web UI (browser instead of the native window)
 
 ```bash
 python web_ui.py   # http://localhost:8765

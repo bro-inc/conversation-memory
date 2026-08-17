@@ -67,8 +67,10 @@ extraction — that's `screen-memory`'s job, not this project's.
 - `speaker_matcher.py` — cosine-distance match against stored voiceprints, or enroll new
 - `db.py` — SQLite: `voiceprints` (persistent, anonymous) + `segments` (transcript log)
 - `query.py` — CLI to read back the transcript log
-- `web_ui.py` + `static/index.html` — local FastAPI test UI: transcripts grouped by hour,
+- `web_ui.py` + `static/index.html` — local FastAPI UI: transcripts grouped by hour,
   live-refreshing, with an on-demand DeepSeek summary per hour (cached in `summaries` table)
+- `desktop_app.py` — runs `web_ui.py`'s server in a background thread and opens it in a
+  native `pywebview` window instead of a browser tab
 - `summarizer.py` — DeepSeek (OpenAI-compatible) client for per-hour summaries
 
 ## Known v1 limitations
@@ -85,6 +87,7 @@ extraction — that's `screen-memory`'s job, not this project's.
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.template .env   # add DEEPGRAM_API_KEY
-python daemon.py
-python query.py         # inspect the transcript log
+python daemon.py         # terminal 1
+python desktop_app.py    # terminal 2 — native window, or `python web_ui.py` for a browser tab
+python query.py          # or inspect the transcript log from the CLI
 ```
